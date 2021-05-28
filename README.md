@@ -1,4 +1,4 @@
-# OpenBMC test
+# OpenBMC 
 
 ![Build status](https://dev.azure.com/openbmc/OpenBMC/_apis/build/status/Intel-BMC.openbmc?branchName=intel "Build status")
 
