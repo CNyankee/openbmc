@@ -1,0 +1,55 @@
+From 0d6556539be9bda478a3cabb6127eace5764fa11 Mon Sep 17 00:00:00 2001
+From: Vikram Bodireddy <vikram.bodireddy@intel.com>
+Date: Wed, 15 Jan 2020 10:01:04 +0800
+Subject: [PATCH] Add StandbySpare support for software inventory
+
+Add support to allow update for active / recovery
+regions of specified firmware. This update enables
+the backend modules to advertise whether the
+software object is active or recovery (StandbySpare)
+image.
+
+Signed-off-by: Vikram Bodireddy <vikram.bodireddy@intel.com>
+---
+ xyz/openbmc_project/Software/Activation.interface.yaml | 12 ++++++++++++
+ 1 file changed, 12 insertions(+)
+
+diff --git a/xyz/openbmc_project/Software/Activation.interface.yaml b/xyz/openbmc_project/Software/Activation.interface.yaml
+index efeeeb6..6c9ce75 100644
+--- a/xyz/openbmc_project/Software/Activation.interface.yaml
++++ b/xyz/openbmc_project/Software/Activation.interface.yaml
+@@ -28,12 +28,20 @@ enumerations:
+         - name: Activating
+           description: >
+             The Software.Version is in the process of being Activated.
++        - name: ActivatingAsStandbySpare
++          description: >
++            The Software.Version is in the process of being processed
++            as StandbySpare.
+         - name: Active
+           description: >
+             The Software.Version is currently Active.
+         - name: Failed
+           description: >
+             The Software.Version failed during or after Activation.
++        - name: StandbySpare
++          description: >
++            The Software.Version is part of a redundancy set and awaits
++            a failover or external action to activate.
+         - name: Staged
+           description: >
+             The Software.Version is currently in staged flash area.
+@@ -48,6 +56,10 @@ enumerations:
+         - name: Active
+           description: >
+             The Software.Version has been requested for Activation.
++        - name: StandbySpare
++          description: >
++            The Software.Version has been requested to be enabled as
++            StandbySpare.
+ # TODO: Specify "EAGAIN" type error when requested is unable to be acted on
+ #       due to current system state.  Currently, sdbusplus does not support
+ #       errors on properties.
+-- 
+2.7.4
+

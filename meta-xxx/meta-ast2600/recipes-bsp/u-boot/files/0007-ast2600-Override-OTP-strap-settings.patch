@@ -1,0 +1,78 @@
+From 6f9d529b616ce84271ccd2584b9bcd8d13ab57de Mon Sep 17 00:00:00 2001
+From: Jae Hyun Yoo <jae.hyun.yoo@intel.com>
+Date: Wed, 29 Jan 2020 14:55:44 -0800
+Subject: [PATCH] ast2600: Override OTP strap settings
+
+This commit adds settings to override OTP strap.
+Also, this commit disables SoC debug interface.
+
+Signed-off-by: Jae Hyun Yoo <jae.hyun.yoo@intel.com>
+---
+ arch/arm/mach-aspeed/ast2600/platform.S | 26 ++++++++++++++++++++++---
+ 1 file changed, 23 insertions(+), 3 deletions(-)
+
+diff --git a/arch/arm/mach-aspeed/ast2600/platform.S b/arch/arm/mach-aspeed/ast2600/platform.S
+index f193c66cd04b..997670b66bdc 100644
+--- a/arch/arm/mach-aspeed/ast2600/platform.S
++++ b/arch/arm/mach-aspeed/ast2600/platform.S
+@@ -44,7 +44,9 @@
+ #define AST_SCU_HPLL_PARAM		(AST_SCU_BASE + 0x200)
+ #define AST_SCU_HPLL_PARAM_EXT		(AST_SCU_BASE + 0x204)
+ #define AST_SCU_HW_STRAP1		(AST_SCU_BASE + 0x500)
++#define AST_SCU_HW_STRAP1_CLR		(AST_SCU_BASE + 0x504)
+ #define AST_SCU_HW_STRAP2		(AST_SCU_BASE + 0x510)
++#define AST_SCU_HW_STRAP2_CLR		(AST_SCU_BASE + 0x514)
+ #define AST_SCU_CA7_PARITY_CHK		(AST_SCU_BASE + 0x820)
+ #define AST_SCU_CA7_PARITY_CLR		(AST_SCU_BASE + 0x824)
+ #define AST_SCU_MMIO_DEC_SET		(AST_SCU_BASE + 0xC24)
+@@ -173,6 +175,26 @@ do_primary_core_setup:
+ 	/* unlock system control unit */
+ 	scu_unlock
+ 
++	/* disable CA7 CPU boot */
++	ldr	r0, =AST_SCU_HW_STRAP1_CLR
++	movw	r1, #0x0001		@; Disable ARM CA7 CPU boot
++	movt	r1, #0x0000
++	str	r1, [r0]
++
++	/* enable eSPI, debug interface and disable UART5 boot*/
++	ldr	r0, =AST_SCU_HW_STRAP2_CLR
++	movw	r1, #0x0040		@; Select eSPI
++	movt	r1, #0x0000
++	orr	r1, #0x0010		@; Enable debug interface
++	orr	r1, #0x0100		@; Disable UART5 boot
++	str	r1, [r0]
++
++	/* enable ACPI */
++	ldr	r0, =AST_SCU_HW_STRAP2
++	ldr	r1, [r0]
++	orr	r1, #0x20		@; Enable ACPI
++	str	r1, [r0]
++
+ 	/* identify AST2600 A0/A1 */
+ 	ldr	r0, =AST_SCU_REV_ID
+ 	ldr	r0, [r0]
+@@ -262,19 +284,17 @@ skip_fill_wip_bit:
+ 	ldr	r1, =AST_FMC_WDT1_CTRL_MODE
+ 	str	r0, [r1]
+ 
+-#if 0
+ 	/* disable UART-based SoC Debug Interface UART5 and P2A bridge*/
+ 	ldr     r0, =AST_SCU_DEBUG_CTRL
+ 	ldr     r1, [r0]
+ 	orr     r1, #0x03
+ 	str     r1, [r0]
+-	
++
+ 	/* disable UART-based SoC Debug Interface UART1 and LPC2AHB bridge */
+ 	ldr     r0, =AST_SCU_DEBUG_CTRL2
+ 	ldr     r1, [r0]
+ 	orr     r1, #0x0A
+ 	str     r1, [r0]
+-#endif
+ 
+ 	/* relocate mailbox insn. for cpuN polling SMP go signal */
+ 	adrl	r0, mailbox_insn
+-- 
+2.17.1
+

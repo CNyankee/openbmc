@@ -1,0 +1,35 @@
+From 948a92b3000120f902292b661a544e35d796784a Mon Sep 17 00:00:00 2001
+From: Kuiying Wang <kuiying.wang@intel.com>
+Date: Mon, 13 Apr 2020 09:30:14 +0800
+Subject: [PATCH] PFR u-boot env changes as per PFR BMC image
+
+u-boot env changes as per PFR BMC flash layout.
+
+Signed-off-by: Vikram Bodireddy <vikram.bodireddy@intel.com>
+Signed-off-by: Kuiying Wang <kuiying.wang@intel.com>
+---
+ include/configs/aspeed-common.h | 8 +++++---
+ 1 file changed, 5 insertions(+), 3 deletions(-)
+
+diff --git a/include/configs/aspeed-common.h b/include/configs/aspeed-common.h
+index 6065ec58db..b13dbd02f3 100644
+--- a/include/configs/aspeed-common.h
++++ b/include/configs/aspeed-common.h
+@@ -64,9 +64,11 @@
+ #define CONFIG_ENV_SIZE			0x10000
+ #endif
+ 
+-#ifndef CONFIG_ENV_OFFSET
+-#define CONFIG_ENV_OFFSET		0x2400000
+-#endif
++#undef CONFIG_BOOTCOMMAND
++#define CONFIG_BOOTCOMMAND		"bootm 20b00000"
++
++#undef CONFIG_ENV_OFFSET
++#define CONFIG_ENV_OFFSET		0xa0000
+ 
+ #define CONFIG_SYS_REDUNDAND_ENVIRONMENT
+ #define CONFIG_ENV_OVERWRITE
+-- 
+2.17.1
+

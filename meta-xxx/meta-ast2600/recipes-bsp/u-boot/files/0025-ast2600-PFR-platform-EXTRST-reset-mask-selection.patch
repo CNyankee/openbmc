@@ -1,0 +1,49 @@
+From 5ca28a9259d084440879be48ef4b4d6716794281 Mon Sep 17 00:00:00 2001
+From: Vikram Bodireddy <vikram.bodireddy@intel.com>
+Date: Mon, 22 Feb 2021 17:22:16 +0530
+Subject: [PATCH] ast2600-PFR-platform-EXTRST-reset-mask-selection
+
+This commit will enable specific reset mask for EXTRST# signal.
+On PFR platforms, EXTRST# signal is used by PFR CPLD to put BMC
+in reset during firmware authentications, recovery and firmware
+update flow, during which certain modules of BMC should be chosen
+to be reset so that Host functionality would be intact.
+
+Signed-off-by: Chalapathi Venkataramashetty <chalapathix.venkataramashetty@intel.com>
+Signed-off-by: Vikram Bodireddy <vikram.bodireddy@intel.com>
+---
+ arch/arm/mach-aspeed/ast2600/platform.S | 11 +++++++++++
+ 1 file changed, 11 insertions(+)
+
+diff --git a/arch/arm/mach-aspeed/ast2600/platform.S b/arch/arm/mach-aspeed/ast2600/platform.S
+index ecc9fd33d1..8c40515b76 100644
+--- a/arch/arm/mach-aspeed/ast2600/platform.S
++++ b/arch/arm/mach-aspeed/ast2600/platform.S
+@@ -39,6 +39,8 @@
+ #define AST_SCU_REV_ID			(AST_SCU_BASE + 0x014)
+ #define AST_SCU_SYSRST_CTRL		(AST_SCU_BASE + 0x040)
+ #define AST_SCU_SYSRST_CTRL_CLR		(AST_SCU_BASE + 0x044)
++#define AST_SCU_EXTRST_SEL1		(AST_SCU_BASE + 0x060)
++#define AST_SCU_EXTRST_SEL2		(AST_SCU_BASE + 0x070)
+ #define AST_SCU_DEBUG_CTRL              (AST_SCU_BASE + 0x0C8)
+ #define AST_SCU_DEBUG_CTRL2             (AST_SCU_BASE + 0x0D8)
+ #define AST_SCU_HPLL_PARAM		(AST_SCU_BASE + 0x200)
+@@ -285,6 +287,15 @@ wait_lock:
+ 	str	r1, [r0]
+ 
+ 1:
++	/* SCU060:EXTRST1# reset mask selection */
++	ldr 	r0, =AST_SCU_EXTRST_SEL1
++	ldr 	r1, =0x6FF1FF5
++	str 	r1, [r0]
++	/* SCU070:EXTRST2# reset mask selection */
++	ldr 	r0, =AST_SCU_EXTRST_SEL2
++	ldr 	r1, =0x3FFFFF7
++	str 	r1, [r0]
++
+ 	/* disable eSPI, LPC and PWM resets on WDT1 reset */
+ 	ldr	r0, =AST_WDT1_RESET_MASK2
+ 	ldr	r1, [r0]
+-- 
+2.17.1
+

@@ -1,0 +1,83 @@
+diff -ru uboot.orig/board/aspeed/ast-g5/ast-g5-intel.c uboot/board/aspeed/ast-g5/ast-g5-intel.c
+--- uboot.orig/board/aspeed/ast-g5/ast-g5-intel.c	2021-05-31 16:00:50.936452338 +0800
++++ uboot/board/aspeed/ast-g5/ast-g5-intel.c	2021-05-31 16:03:25.585164123 +0800
+@@ -313,7 +313,8 @@
+ 
+ int intel_force_firmware_jumper_enabled(void)
+ {
+-	return gpio_get_value(GPIO_FF_UPD_JUMPER);
++	//return gpio_get_value(GPIO_FF_UPD_JUMPER);
++	return 0;
+ }
+ 
+ int intel_failed_boot(void)
+diff -ru uboot.orig/common/board_r.c uboot/common/board_r.c
+--- uboot.orig/common/board_r.c	2021-05-31 16:00:51.024452707 +0800
++++ uboot/common/board_r.c	2021-05-31 16:04:15.937419880 +0800
+@@ -875,9 +875,9 @@
+ #endif
+ 	INIT_FUNC_WATCHDOG_RESET
+ 	initr_secondary_cpu,
+-#if defined(CONFIG_ID_EEPROM) || defined(CONFIG_SYS_I2C_MAC_OFFSET)
++/*#if defined(CONFIG_ID_EEPROM) || defined(CONFIG_SYS_I2C_MAC_OFFSET)
+ 	mac_read_from_eeprom,
+-#endif
++#endif*/
+ 	INIT_FUNC_WATCHDOG_RESET
+ #if defined(CONFIG_PCI) && !defined(CONFIG_SYS_EARLY_PCI_INIT)
+ 	/*
+diff -ru uboot.orig/drivers/net/ftgmac100.c uboot/drivers/net/ftgmac100.c
+--- uboot.orig/drivers/net/ftgmac100.c	2021-05-31 16:00:50.848451970 +0800
++++ uboot/drivers/net/ftgmac100.c	2021-05-31 16:09:32.287220371 +0800
+@@ -493,10 +493,12 @@
+ 
+ 	if (env) {
+ 		printf("TODO ... eerprom --> \n");
+-	    eeprom_init();
+-		i2c_set_bus_num(3);
++	    eeprom_init(0);
++		i2c_set_bus_num(0);
++	if(dev->index == 0)
+ 	    eeprom_read(CONFIG_SYS_I2C_EEPROM_ADDR, CONFIG_SYS_I2C_MAC_OFFSET, dev->enetaddr, 6);
+-
++	if(dev->index == 1)
++	    eeprom_read(CONFIG_SYS_I2C_EEPROM_ADDR, CONFIG_SYS_I2C_MAC_OFFSET+8, dev->enetaddr, 6);
+ 		for (i = 0; i < 6; i++) {
+ 		    if (dev->enetaddr[i] != 0xFF) {
+ 		        env = 0;	//Suppose not all 0xFF is valid
+@@ -508,7 +510,8 @@
+ 		eth_getenv_enetaddr_by_index("eth", dev->index, dev->enetaddr);
+ //		eth_setenv_enetaddr("ethaddr", dev->enetaddr);
+ 	else
+-		eth_getenv_enetaddr_by_index("eth", dev->index, dev->enetaddr);
++		eth_setenv_enetaddr_by_index("eth", dev->index, dev->enetaddr);
++//		eth_getenv_enetaddr_by_index("eth", dev->index, dev->enetaddr);
+ //		eth_getenv_enetaddr("ethaddr", dev->enetaddr);
+ 
+ 	ftgmac100_set_mac(dev, dev->enetaddr);
+diff -ru uboot.orig/include/configs/ast-common.h uboot/include/configs/ast-common.h
+--- uboot.orig/include/configs/ast-common.h	2021-05-31 16:00:50.916452255 +0800
++++ uboot/include/configs/ast-common.h	2021-05-31 16:14:18.788571466 +0800
+@@ -59,6 +59,14 @@
+ #define CONFIG_BAUDRATE				115200
+ 
+ /*
++* EEPROM Configuration
++*/
++#define CONFIG_CMD_EEPROM
++#define CONFIG_SYS_I2C_EEPROM_ADDR 		0x50
++#define CONFIG_SYS_I2C_MAC_OFFSET 		128
++#define CONFIG_SYS_I2C_EEPROM_ADDR_LEN		2
++
++/*
+  * BOOTP options
+  */
+ #define CONFIG_BOOTP_BOOTFILESIZE
+@@ -122,6 +130,7 @@
+ #define ASPEED_ENV_SETTINGS \
+ 	"verify=yes\0"	\
+ 	"spi_dma=yes\0" \
++	"eeprom=y\0"	\
+ 	""
+ 
+ #endif	/* __AST_COMMON_CONFIG_H */
